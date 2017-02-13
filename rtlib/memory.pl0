@@ -1,0 +1,6 @@
+void memcpy(int *dest, int *src, int len) {
+  var int i;
+  for(i = 0; i < len; i = i + 1) {
+    *(dest + i) = *(src + i);
+  }
+}

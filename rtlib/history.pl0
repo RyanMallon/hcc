@@ -1,0 +1,81 @@
+/*
+ * history.pl0
+ * Ryan Mallon (2006)
+ *
+ * History runtime functions for primitive history variables.
+ * Munging types is fun ;-)
+ *
+ */
+
+/*
+ * Initialise the cycle pointer to point to the first element in the cycle
+ */
+void hist_init(int *addr) {
+  *(addr + 1) = addr + 2;
+}
+
+/*
+ * Store a history variable
+ */
+void hist_store(int *addr, int depth, int value) {
+  var int *current, *oldest, *pointer;
+
+  pointer = addr + 1;
+  current = *pointer;
+
+  /* Check that the current and the pointer match */
+  if(*addr != *current) {
+    oldest = hist_cycle_oldest(pointer, depth);
+    *oldest = *addr;
+    *pointer = oldest;
+  }
+
+  oldest = hist_cycle_oldest(pointer, depth);
+  *oldest = value;
+  *addr = value;
+  *pointer = oldest;
+}
+
+/*
+ * Load a history variable
+ */
+int hist_load(int *addr, int history, int depth) {
+  var int *current, *oldest, *pointer, *value_addr;
+
+  pointer = addr + 1;
+  current = *pointer;
+
+  /* Check that the current and the pointer match */
+  if(*addr != *current) {
+    oldest = hist_cycle_oldest(pointer, depth);
+    *oldest = *addr;
+    *pointer = oldest;
+  }
+
+  /* Find the value */
+  value_addr = *pointer;
+  value_addr = value_addr + history;
+
+  if(value_addr > (pointer + (depth + 1))) {
+    value_addr = value_addr - (depth + 1);
+  }
+
+  return *value_addr;
+}
+
+
+/*
+ * Get the address of the oldest value in a history cycle
+ */
+int hist_cycle_oldest(int *addr, int depth) {
+  var int *oldest;
+
+  oldest = *addr;
+  oldest = oldest - 1;
+
+  if(oldest == addr) {
+    oldest = oldest + depth + 1;
+  }
+
+  return [int]oldest;
+}
